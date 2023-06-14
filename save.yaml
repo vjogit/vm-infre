@@ -1,0 +1,69 @@
+#ansible-playbook -i hosts.yaml save.yaml 
+
+- name: tache delete Vm
+  hosts: kvm
+  connection: local
+  tasks:
+
+    - name: check {{vm_name}} exists
+      community.libvirt.virt:
+        command: list_vms
+      register: all_vms
+
+    - block:
+
+# arret de la VM
+      - name: arret de  {{vm_name}}
+        ignore_errors: true
+        community.libvirt.virt:
+          name: "{{vm_name}}"
+          command: shutdown
+
+      - name: Attendre l'arrêt de la machine virtuelle
+        shell:  virsh list --state-shutoff --name 
+        register: vm_stopped
+        retries: 10
+        delay: 5
+        until: vm_stopped is search(vm_name)
+
+#creation dir backup
+      - name: cree chemin backup
+        shell: "echo {{backup_path}}/{{vm_name}}/$(date +%Y-%m-%d_%H-%M-%S)"
+        register: backup_dir
+
+      - name: Creates  backup dir
+        file:
+          path: "{{backup_dir['stdout']}}"
+          state: directory
+
+# sauve context VM
+      - name: Lecture configuration XML de {{vm_name}}
+        command: virsh dumpxml {{ vm_name }}
+        register: xml_output
+
+      - name: Sauvegarde config
+        copy:
+          content: "{{ xml_output.stdout }}"
+          dest: "{{backup_dir['stdout']}}/dumpxml.xml"
+        changed_when: false
+
+      - name: recupere nom disk
+        shell: "virsh domblklist {{vm_name}} | grep qcow2 | awk '{print $2}'"
+        register: disk_path
+
+      - name: Copy disk
+        ansible.builtin.copy:
+          src: "{{ item }}"
+          dest: "{{backup_dir['stdout']}}"
+        with_items: "{{ disk_path.stdout_lines }}"
+
+      - name: Ne garde que les derniers
+        shell: "cd {{backup_path}}/{{vm_name}}; ls -t  | tail -n +{{nbr_sauvegarde}} | xargs rm -rf "
+
+      - name: redemarrage de {{vm_name}} 
+        community.libvirt.virt:
+          name: "{{vm_name}}"
+          command: start
+    
+      when: all_vms is search(vm_name)
+

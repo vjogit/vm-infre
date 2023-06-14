@@ -1,0 +1,142 @@
+#Les images cloud init se trouve:
+#     https://download.rockylinux.org/pub/rocky/9/images/x86_64/
+# ansible-playbook -i hosts.yaml creation.yaml --ssh-common-args='-o StrictHostKeyChecking=no'
+
+- name: tache creation Vm
+  hosts: kvm
+  connection: local
+  vars:
+    template_rocky: "Rocky-9-GenericCloud-Base-9.2-20230513.0.x86_64.qcow2"
+    disk_path: "{{vm_path}}/{{vm_name}}"
+    vm_disk: "{{disk_path}}/{{template_rocky}}"
+    tmp_directory : ./tmp/{{vm_name}}
+    data_directory: ./{{tmp_directory}}/data
+    iso: cloud-init.iso
+    cloud_init_cdrom: ./{{tmp_directory}}/{{iso}}
+    user_data: ./{{data_directory}}/user-data
+    meta_data: ./{{data_directory}}/meta-data
+    network_config : ./{{data_directory}}/network-config
+    dump_xml: ./{{tmp_directory}}/dump.xml
+  tasks:
+
+    - name: check {{vm_name}} exists
+      community.libvirt.virt:
+        command: list_vms
+      register: all_vms
+
+    - block:
+
+      - name: remove ssh .ssh StrictHostKeyChecking
+        command: 'ssh-keygen -f "/home/vjo/.ssh/known_hosts" -R {{inventory_hostname}}'
+        ignore_errors: true
+
+      - name: Creates  VM directories
+        file:
+          path: "{{disk_path}}"
+          state: directory
+
+      - name: 
+        ansible.builtin.copy:
+          src: "{{template_rocky}}"
+          dest: "{{vm_disk}}"
+
+      - name: Creates  VM tmp directories
+        file:
+          path: "{{data_directory}}"
+          state: directory
+
+# fichier pour la creation de l'image disk de cloud-init
+      - name: user-data
+        template:
+          src: user-data
+          dest: "{{user_data}}"
+
+      - name: meta-data
+        template:
+          src: meta-data
+          dest: "{{meta_data}}"
+
+      - name: network-config
+        template:
+          src: network-config
+          dest: "{{network_config}}"
+
+      - name: creation cdrom cloud-init
+        shell: "mkisofs  -o {{cloud_init_cdrom}} -volid cidata -joliet -rock {{data_directory}}"
+
+# creation VM
+      - name: creation vm
+        command: |
+          virt-install --name {{vm_name}}
+            --virt-type kvm
+            --memory 2048
+            --vcpus 2
+            --boot hd,menu=on
+            --disk path={{cloud_init_cdrom}},device=cdrom
+            --disk path={{vm_disk}},device=disk
+            --graphics none
+            --os-variant rocky9.0
+            --network network:default 
+            --console pty,target_type=serial
+
+      - name: Set autostart for a VM
+        community.libvirt.virt:
+          name: "{{vm_name}}"
+          autostart: yes
+
+# root n'a pas encore la clef ssh installée, mais l'utilsateur courant oui.
+
+      - name: attends fin de cloud cloud-init
+        shell: ssh -o StrictHostKeyChecking=no {{user_name}}@{{inventory_hostname}} cloud-init status
+        register: status_result
+        until: status_result is search("done")
+        retries: 20
+        delay: 5
+
+# l'ejection du CDROM est temporaire. Revient sur nouveau boot
+# supprime le driver CDROM pour etre definitif.
+      - name: Arrêter la machine virtuelle
+        command: virsh shutdown {{ vm_name }}
+
+      - name: Attendre l'arrêt de la machine virtuelle
+        shell:  virsh list --state-shutoff --name 
+        register: vm_stopped
+        retries: 10
+        delay: 2
+        until: vm_stopped is search(vm_name)
+
+      - name: Lecture configuration XML de {{vm_name}}
+        command: virsh dumpxml {{ vm_name }}
+        register: xml_output
+
+      - name: Sauvegarde ds fichier temporaire
+        copy:
+          content: "{{ xml_output.stdout }}"
+          dest: "{{dump_xml}}"
+        changed_when: false
+
+      - name: Remove the 'device' attribute 
+        community.general.xml:
+          path: "{{ dump_xml }}"
+          xpath: '/domain/devices/disk[@device="cdrom"]'
+          state: absent
+
+      - name: Définir la nouvelle configuration XML
+        command: virsh define {{ dump_xml }}
+
+      - name: redemarrage de {{vm_name}} 
+        community.libvirt.virt:
+          name: "{{vm_name}}"
+          command: start
+
+      - name:  remove user_data
+        ansible.builtin.file:
+          path: "{{tmp_directory}}"
+          state: absent
+        
+      when: vm_name  not in all_vms.list_vms
+
+
+
+   
+

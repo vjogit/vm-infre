@@ -1,0 +1,66 @@
+#ansible-playbook -i hosts.yaml delete.yaml --ssh-common-args='-o StrictHostKeyChecking=no'
+
+- name: tache restore Vm
+  hosts: kvm
+  connection: local
+  vars:
+    disk_path: "{{vm_path}}/{{vm_name}}"
+  tasks:
+    - name: check {{vm_name}} exists
+      community.libvirt.virt:
+        command: list_vms
+      register: all_vms
+
+    # supprime la VM si elle existe
+
+    - block:
+        - name: destroy {{vm_name}} exists
+          ignore_errors: true
+          community.libvirt.virt:
+            name: "{{vm_name}}"
+            state: destroyed
+
+        - name: delete {{vm_name}} exists
+          ignore_errors: true
+          community.libvirt.virt:
+            name: "{{vm_name}}"
+            command: undefine
+
+        - name: supprime les disques
+          ansible.builtin.file:
+            path: "{{disk_path}}"
+            state: absent
+      when: vm_name  in all_vms.list_vms
+
+    - name: cree le rep pour les disque
+      file:
+        path: "{{disk_path}}"
+        state: directory
+
+    # trouve le chemin ou sont les disque de sauvegarde
+    # la valeur - de restore signifie la derniere sauvegarde.
+ 
+    - name: determine le repertoire archive
+      path_archive:
+        restore: "{{restore}}"
+        backup : "{{backup_path}}/{{vm_name}}"
+      register: archive
+
+    - name: "nom du repertoire d'archive: {{archive.stdout}}"
+      shell: "echo {{backup_path}}/{{vm_name}}/{{archive['result']}}"
+      register: archive_path
+
+    - name: restore la  configuration XML
+      command: virsh define {{archive_path['stdout']}}/dumpxml.xml
+
+    - name: recupere le path du  disk
+      shell: "virsh domblklist {{vm_name}} | grep qcow2 | awk '{print $2}'"
+      register: disk_path
+
+    - name:
+      copy_file:
+        src:  "{{archive_path['stdout']}}"
+        dest: "{{item}}"
+      with_items: "{{ disk_path.stdout_lines }}"
+
+

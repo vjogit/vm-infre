@@ -1,0 +1,10 @@
+version: 2
+ethernets:
+# attention au nom de la carte: doit correspondre a celle de la VM.
+  eth0:
+     dhcp4: true
+     addresses: [ {{inventory_hostname}}/24 ]
+    #  gateway4: 192.168.42.1
+    #  nameservers:
+    #    addresses: [ 192.168.42.1,8.8.8.8 ]
+    #    search: [ kube.test ]

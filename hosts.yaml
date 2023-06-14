@@ -1,0 +1,8 @@
+kvm:
+  hosts:
+    192.168.122.234: {vm_name: A1, user_name: etudiant, user_pwd: etudiant, restore: "-"}
+    # 192.168.122.235: {vm_name: A2} 
+    # 192.168.122.236: {vm_name: A3} 
+    # 192.168.122.237: {vm_name: A4} 
+    # 192.168.122.238: {vm_name: A5} 
+    

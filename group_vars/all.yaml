@@ -1,0 +1,3 @@
+backup_path: "./backups"
+nbr_sauvegarde : "4"
+vm_path: "./VM"
