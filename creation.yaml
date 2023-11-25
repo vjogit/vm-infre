@@ -93,41 +93,10 @@
         retries: 20
         delay: 5
 
-# l'ejection du CDROM est temporaire. Revient sur nouveau boot
-# supprime le driver CDROM pour etre definitif.
-      - name: Arrêter la machine virtuelle
-        command: virsh shutdown {{ vm_name }}
 
-      - name: Attendre l'arrêt de la machine virtuelle
-        shell:  virsh list --state-shutoff --name 
-        register: vm_stopped
-        retries: 10
-        delay: 2
-        until: vm_stopped is search(vm_name)
-
-      - name: Lecture configuration XML de {{vm_name}}
-        command: virsh dumpxml {{ vm_name }}
-        register: xml_output
-
-      - name: Sauvegarde ds fichier temporaire
-        copy:
-          content: "{{ xml_output.stdout }}"
-          dest: "{{dump_xml}}"
-        changed_when: false
-
-      - name: Remove the 'device' attribute 
-        community.general.xml:
-          path: "{{ dump_xml }}"
-          xpath: '/domain/devices/disk[@device="cdrom"]'
-          state: absent
-
-      - name: Définir la nouvelle configuration XML
-        command: virsh define {{ dump_xml }}
-
-      - name: redemarrage de {{vm_name}} 
-        community.libvirt.virt:
-          name: "{{vm_name}}"
-          command: start
+# supprime le driver CDROM pour etre definitif et plus propre.
+      - name: Enleve le cdrom de clound init
+        command: virsh change-media  {{ vm_name }} sda --eject --live --config
 
       - name:  remove user_data
         ansible.builtin.file:
