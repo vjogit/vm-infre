@@ -16,7 +16,6 @@
     user_data: ./{{data_directory}}/user-data
     meta_data: ./{{data_directory}}/meta-data
     network_config : ./{{data_directory}}/network-config
-    dump_xml: ./{{tmp_directory}}/dump.xml
   tasks:
 
     - name: check {{vm_name}} exists
@@ -48,17 +47,17 @@
 # fichier pour la creation de l'image disk de cloud-init
       - name: user-data
         template:
-          src: user-data
+          src: user-data.tpl.yaml
           dest: "{{user_data}}"
 
       - name: meta-data
         template:
-          src: meta-data
+          src: meta-data.tpl.json
           dest: "{{meta_data}}"
 
       - name: network-config
         template:
-          src: network-config
+          src: network-config.tpl.yaml
           dest: "{{network_config}}"
 
       - name: creation cdrom cloud-init
