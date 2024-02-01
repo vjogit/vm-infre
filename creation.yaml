@@ -74,7 +74,7 @@
 
 
       - name: user-data
-        command: cat /home/etudiant/.ssh/id_rsa.pub
+        command: cat /home/vjo/.ssh/id_rsa.pub
         register: ssh_pub_key
 
       - name: user-data
