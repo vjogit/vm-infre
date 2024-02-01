@@ -1,12 +1,4 @@
 kvm:
   hosts:
     192.168.130.101: {vm_name: ceph-1, user_name: etudiant, user_pwd: etudiant, restore: "-"}
-    192.168.130.102: {vm_name: ceph-2, user_name: etudiant, user_pwd: etudiant, restore: "-"}
-    192.168.130.103: {vm_name: ceph-3, user_name: etudiant, user_pwd: etudiant, restore: "-"}
-    192.168.130.104: {vm_name: ceph-4, user_name: etudiant, user_pwd: etudiant, restore: "-"}
-    192.168.130.105: {vm_name: ceph-5, user_name: etudiant, user_pwd: etudiant, restore: "-"}
-    # 192.168.122.235: {vm_name: A2}
-    # 192.168.122.236: {vm_name: A3} 
-    # 192.168.122.237: {vm_name: A4} 
-    # 192.168.122.238: {vm_name: A5} 
     

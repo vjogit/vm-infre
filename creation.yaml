@@ -79,17 +79,17 @@
 
       - name: user-data
         template:
-          src: user-data.j2
+          src: user-data.tpl.yaml
           dest: "{{user_data}}"
 
       - name: meta-data
         template:
-          src: meta-data.j2
+          src: meta-data.tpl.json
           dest: "{{meta_data}}"
 
       - name: network-config
         template:
-          src: network-config.j2
+          src: network-config.tpl.yaml
           dest: "{{network_config}}"
 
       - name: creation cdrom cloud-init
@@ -107,7 +107,6 @@
             --disk path={{vm_disk}},device=disk
             --graphics none
             --os-variant rocky9.0
-            --network network:bridge-kvm
             --console pty,target_type=serial
 
       - name: Set autostart for a VM
