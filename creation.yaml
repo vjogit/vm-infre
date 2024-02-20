@@ -8,6 +8,12 @@
 - name: "Récupére rocky depuis internet si non présent localement"
   hosts: localhost
   tasks:
+
+    - name: Cree le repertoire "./images/"
+      ansible.builtin.file:
+        path: "./images/"
+        state: directory
+
     - name: Vérifie si le fichier {{rocky_disk}}  existe localement
       stat:
         path: "./images/{{rocky_disk}}"
@@ -17,7 +23,7 @@
     - name: Récupérer le fichier depuis internet si non présent localement
       get_url:
         url: "{{rocky_download_url}}"
-        dest: "./images"
+        dest: "./images/"
       when: not file_stat.stat.exists
 
 - name: tache creation Vm
