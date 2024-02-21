@@ -44,3 +44,13 @@ lame1 hyperviseur: 159.31.248.11
 
 lame2 idrac: 159.31.248.12
 lame2 hyperviseur: 159.31.248.13
+
+
+Pour les differents mode de bridges de la vm:
+https://developers.redhat.com/blog/2018/10/22/introduction-to-linux-interfaces-for-virtual-networking#
+https://linuxconfig.org/how-to-use-bridged-networking-with-libvirt-and-kvm
+
+Le plus simple est de definir un reseau de type macvtap comme dans 
+https://blog.scottlowe.org/2016/02/09/using-kvm-libvirt-macvtap-interfaces/
+puis de le connecter via un reseau virtuel. 
+

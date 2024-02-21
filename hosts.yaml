@@ -1,4 +1,4 @@
 kvm:
   hosts:
-    192.168.130.101: {vm_name: ceph-1, user_name: etudiant, user_pwd: etudiant, restore: "-"}
+    159.31.247.101: {vm_name: ceph-2, user_name: etudiant, user_pwd: etudiant, restore: "-",range_ip1: [101, 1] ,range_ip2: []}
     
