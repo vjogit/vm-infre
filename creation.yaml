@@ -53,6 +53,12 @@
     dump_xml: ./{{tmp_directory}}/dump.xml
   tasks:
 
+    - name: tmp_directory
+      ansible.builtin.file:
+          path: "{{tmp_directory}}"
+          state: absent
+
+
     - name: check {{vm_name}} exists
       community.libvirt.virt:
         command: list_vms
@@ -102,7 +108,7 @@
         shell: "mkisofs  -o {{cloud_init_cdrom}} -volid cidata -joliet -rock {{data_directory}}"
 
 
-      - name: genere uneadresse mac 
+      - name: genere une adresse mac 
         shell: echo -n 00:60:2F; dd bs=1 count=3 if=/dev/random 2>/dev/null |hexdump -v -e '/1 ":%02X"' 
         register: nic_mac_gestion
 
@@ -142,9 +148,9 @@
 
 #supprime la NIC de gestion. Si rajoute une NIC, aura la bonne ip
       - name: Enleve la carte reseau de gestion-VM
-        command: virsh detach-interface --domain ceph-1 --type network --mac {{nic_mac_gestion.stdout}}  --current
+        command: virsh detach-interface --domain {{vm_name}} --type network --mac {{nic_mac_gestion.stdout}}  --current
 
-      - name:  remove user_data
+      - name: tmp_directory 
         ansible.builtin.file:
           path: "{{tmp_directory}}"
           state: absent

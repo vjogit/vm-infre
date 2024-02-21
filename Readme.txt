@@ -64,5 +64,13 @@ export LIBVIRT_DEFAULT_URI=qemu:///system
 
 Car sinon execute virsh en mode session, ce qui donne n'importe quoi.
 
+Pour etendre un disque,
+qemu-img resize Rocky-9-GenericCloud-Base-9.2-20230513.0.x86_64.qcow2  40G
 
+puis dans la VM
+growpart /dev/vda X
+ou X est le numero de la partition (vda5 -> X=5)
+xfs_growfs /dev/vda5
+verifier 
+df -h
 
