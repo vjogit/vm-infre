@@ -54,3 +54,15 @@ Le plus simple est de definir un reseau de type macvtap comme dans
 https://blog.scottlowe.org/2016/02/09/using-kvm-libvirt-macvtap-interfaces/
 puis de le connecter via un reseau virtuel. 
 
+
+En cas de pb avec une VM, la supprimer:
+virsh undefine ceph-1 --remove-all-storage --wipe-storage --snapshots-metadata --managed-save
+
+Doit avoir 
+export VIRSH_DEFAULT_CONNECT_URI=qemu:///system
+export LIBVIRT_DEFAULT_URI=qemu:///system
+
+Car sinon execute virsh en mode session, ce qui donne n'importe quoi.
+
+
+

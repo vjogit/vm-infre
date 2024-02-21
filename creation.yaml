@@ -101,6 +101,11 @@
       - name: creation cdrom cloud-init
         shell: "mkisofs  -o {{cloud_init_cdrom}} -volid cidata -joliet -rock {{data_directory}}"
 
+
+      - name: genere uneadresse mac 
+        shell: echo -n 00:60:2F; dd bs=1 count=3 if=/dev/random 2>/dev/null |hexdump -v -e '/1 ":%02X"' 
+        register: nic_mac_gestion
+
 # creation VM. Attention, 1 carte sur un sous reseau sinon bug!
       - name: creation vm
         command: |
@@ -114,8 +119,8 @@
             --graphics none
             --os-variant rocky9.0
             --console pty,target_type=serial
-            --network network:nm-bridge
-            --network network:gestion-VM
+            --network network:macvtap-net
+            --network network:gestion-VM,mac={{nic_mac_gestion.stdout}}
 
       - name: Set autostart for a VM
         community.libvirt.virt:
@@ -125,7 +130,7 @@
 # root n'a pas encore la clef ssh installée, mais l'utilsateur courant oui.
 
       - name: attends fin de cloud cloud-init
-        shell: ssh -o StrictHostKeyChecking=no {{user_name}}@{{inventory_hostname}} cloud-init status
+        shell: ssh -o StrictHostKeyChecking=no {{user_name}}@{{reseau_maintenance}}.{{range_ip1[0]}} cloud-init status
         register: status_result
         until: status_result is search("done")
         retries: 20
@@ -135,9 +140,9 @@
       - name: Enleve le cdrom de clound init
         command: virsh change-media  {{ vm_name }} sda --eject --live --config
 
-      - name: install python 3 pour Rocky 8.
-        shell: ssh -o StrictHostKeyChecking=no root@{{inventory_hostname}} dnf install -y python3
-
+#supprime la NIC de gestion. Si rajoute une NIC, aura la bonne ip
+      - name: Enleve la carte reseau de gestion-VM
+        command: virsh detach-interface --domain ceph-1 --type network --mac {{nic_mac_gestion.stdout}}  --current
 
       - name:  remove user_data
         ansible.builtin.file:
@@ -145,4 +150,5 @@
           state: absent
 
       when: vm_name  not in all_vms.list_vms
+
 
