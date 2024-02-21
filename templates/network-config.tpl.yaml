@@ -1,10 +1,23 @@
 version: 2
 ethernets:
 # attention au nom de la carte: doit correspondre a celle de la VM.
-  eth0:
-     dhcp4: false 
-     addresses: [ {{inventory_hostname}}/24 ]
-    #  gateway4: 192.168.42.1
-    #  nameservers:
-    #    addresses: [ 192.168.42.1,8.8.8.8 ]
-    #    search: [ kube.test ]
+    eth0:
+            addresses:
+{% for ip in range(range_ip1[0],range_ip1[0]+range_ip1[1]) %}
+              - {{reseau}}.{{ip}}/24
+{% endfor %}
+{% if range_ip2 %}
+{% for ip in range(range_ip2[0],range_ip2[0]+range_ip2[1]) %}
+              - {{reseau}}.{{ip}}/24
+{% endfor %}
+{% endif %}
+            nameservers:
+                addresses: [{{nameservers}}]
+            gateway4:  {{gateway}}
+            dhcp4: false
+            dhcp6: false
+    eth1:
+            addresses:
+              - {{reseau_maintenance}}.{{range_ip1[0]}}/24
+            dhcp4: false
+            dhcp6: false

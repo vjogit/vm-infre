@@ -115,6 +115,7 @@
             --os-variant rocky9.0
             --console pty,target_type=serial
             --network network:nm-bridge
+            --network network:gestion-VM
 
       - name: Set autostart for a VM
         community.libvirt.virt:
