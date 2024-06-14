@@ -13,8 +13,7 @@ users:
     sudo: ALL=(ALL) NOPASSWD:ALL
     groups: users, admin
     ssh-authorized-keys:
-      - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDlWCUKTeYIcn825ZVJrazTdwofZI5QVo7UNu3p5REJCeXNU7gf9jYjTC88u+z+nWsxoU9BINngQlZjF1DCsXNO5I8C2W0O87Gmd+J0Rr6Fgem84T/bh0EWie0g4gylM0pTzdYs8NWn1bQvA/i/961zhjKjUuNsBqiHmr8XvCXLApCGPR2jimKwL9KYhQBTCVIl19t8+No0Vrc7ZQbL/Kvom4oOVfzJobNEhFk8cUufDBjM/LfKZYQNDY0MtvOmwSJ59zQllDM9pUau3RBtK1BiWLvisIQjUalUjelLh7Py3UUSr3IzcPULwSluDdUzFz/OF5beBMTzUxnWcnlMMgnq1U+WEqcJP9GyQXTV6RuveQNny2Em/kzC4q7DndPrSAyLX+3rK+NqrjqEwMNT+ac+QhIvdFQ4iMr2Sj1xbbvdjC88JA0bWPFWO5kDYpJ8hSK9GVa4EvfXtbMBRoJGXhdWlog7Za9Y3eD7o8r7jeZf4Fb2Y1vblatwOkUA+mD4sUs= vjo@localhost.localdomain
-
+      - {{ssh_pub_key.stdout}}
 chpasswd:
   list: |
      {{user_name}}:{{user_pwd}}
